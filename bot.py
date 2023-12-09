@@ -72,23 +72,23 @@ async def start_futures_bot(message: Message):
         result = session.query(FuturesDataBase).filter_by(work=False).all()
         with session as s:
             for item in result:
-                process = subprocess.Popen(["python",
-                                            f"{config.main_directory}/models.py"],
-                                           stdin=subprocess.PIPE)
-                print(item.close_long)
-                bytes_string = bytes(
-                    f'{item.pair} {item.leverage} {item.value_usd} '
-                    f'{item.make_long} {item.close_long} '
-                    f'{item.make_short} {item.close_short}',
-                    'utf-8'
-                )
+                command = [
+                    'python',
+                    f'{config.main_directory}/models.py',
+                    f'{item.pair}',
+                    f'{item.leverage}',
+                    f'{item.value_usd}',
+                    f'{item.make_long}',
+                    f'{item.close_long}',
+                    f'{item.make_short}',
+                    f'{item.close_short}',
+                ]
+                process = subprocess.Popen(command)
+
                 await message.answer(f'Я запустил пару {item.pair}')
                 process_dict[item.pair] = process
 
                 item.work = True
-
-                process.stdin.write(bytes_string)
-                process.stdin.close()
 
             s.commit()
     else:
@@ -107,7 +107,8 @@ async def stop(message: Message):
                     text=f'{item.pair}',
                     callback_data=f'pair_{item.pair}')
                     )
-                await message.answer(
+
+            await message.answer(
                     'Нажми на пару которую остановить',
                     reply_markup=builder.as_markup()
                     )
@@ -123,7 +124,6 @@ async def stop(message: Message):
 async def stop(message: Message):
     if message.from_user.id == admin:
         result = session.query(FuturesDataBase).filter_by(work=True).all()
-        await message.answer(f'{result}')
         if len(result) > 0:
             builder = InlineKeyboardBuilder()
             for item in result:
@@ -131,7 +131,7 @@ async def stop(message: Message):
                     text=f'{item.pair}',
                     callback_data=f'pair_{item.pair}')
                     )
-                await message.answer(
+            await message.answer(
                     'Нажми на пару которую остановить',
                     reply_markup=builder.as_markup()
                     )

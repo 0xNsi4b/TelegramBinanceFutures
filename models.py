@@ -1,5 +1,6 @@
+import argparse
+import math
 from typing import Tuple
-import numpy as np
 import time
 from binance import Client
 from config import api
@@ -12,7 +13,7 @@ binance = Client(api_key=api_key, api_secret=api_secret)
 
 def round_down(number, decimals=0):
     factor = 10 ** decimals
-    return np.floor(number * factor) / factor
+    return math.floor(number * factor) / factor
 
 
 class FuturesObj:
@@ -107,16 +108,26 @@ class FuturesObj:
 
 
 if __name__ == '__main__':
-    inp = input().split()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('pair')
+    parser.add_argument('leverage', type=int)
+    parser.add_argument('value_usd', type=float)
+    parser.add_argument('make_long', type=float)
+    parser.add_argument('close_long', type=float)
+    parser.add_argument('make_short', type=float)
+    parser.add_argument('close_short', type=float)
+
+    args = parser.parse_args()
+
     future = FuturesObj(
-                    pair=inp[0],
-                    leverage=int(inp[1]),
-                    value_usd=float(inp[2]),
-                    make_long=float(inp[3]),
-                    close_long=float(inp[4]),
-                    make_short=float(inp[5]),
-                    close_short=float(inp[6]),
-                )
+        pair=args.pair,
+        leverage=args.leverage,
+        value_usd=args.value_usd,
+        make_long=args.make_long,
+        close_long=args.close_long,
+        make_short=args.make_short,
+        close_short=args.close_short,
+    )
 
     attempts = 0
     while attempts < 5:
